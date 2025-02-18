@@ -1,25 +1,32 @@
 # Report for assignment 3
 
-This is a template for your report. You are free to modify it as needed.
-It is not required to use markdown for your report either, but the report
-has to be delivered in a standard, cross-platform format.
-
 ## Project
 
-Name:
+**Name:** Scrapy
 
-URL:
+**URL:** [https://github.com/scrapy/scrapy](https://github.com/scrapy/scrapy)
 
-One or two sentences describing it
+**Description:** *An open source and collaborative framework for extracting the data you need from websites. In a fast, simple, yet extensible way.*
+
 
 ## Onboarding experience
 
-Did it build and run as documented?
-    
-See the assignment for details; if everything works out of the box,
-there is no need to write much here. If the first project(s) you picked
-ended up being unsuitable, you can describe the "onboarding experience"
-for each project, along with reason(s) why you changed to a different one.
+How easily can you build the project? Brieﬂy describe if everything worked as documented or not:
+
+**(a) Did you have to install a lot of additional tools to build the software?**  
+No. Only standard Python tools (like pip) were needed. For testing [tox](https://tox.wiki/en/latest/index.html) was needed and to automatically address simple code issues before every commit [pre-commit](https://pre-commit.com/) was needed.
+
+**(b) Were those tools well documented?**  
+Yes. The required tools are well documented on the contribution guide with links to the respective tools. It could have been helptful with a summary of tools needed to get started though since no package manager is used for development and each tool need to be installed individually.
+
+**(c) Were other components installed automatically by the build script?**  
+Yes. Dependencies are automatically handled via the build configuration.
+
+**(d) Did the build conclude automatically without errors?**  
+Yes. The build process completed automatically without errors.
+
+**(e) How well do examples and tests run on your system(s)?**  
+The examples and tests run smoothly on supported systems.
 
 
 ## Complexity
