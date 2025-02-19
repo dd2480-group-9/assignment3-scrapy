@@ -472,6 +472,16 @@ class EngineTest(EngineTestBase):
 
         self.assertNotIn(b"Traceback", stderr)
 
+    @defer.inlineCallbacks
+    def test_pause_and_unpause(self):
+        e = ExecutionEngine(get_crawler(MySpider), lambda _: None)
+        yield e.open_spider(MySpider(), [])
+        e.start()
+        e.pause()
+        self.assertTrue(e.paused)
+        e.unpause()
+        self.assertFalse(e.paused)
+        yield e.stop()
 
 def test_request_scheduled_signal(caplog):
     class TestScheduler(BaseScheduler):
