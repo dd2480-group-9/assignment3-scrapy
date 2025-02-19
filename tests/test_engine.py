@@ -483,6 +483,31 @@ class EngineTest(EngineTestBase):
         self.assertFalse(e.paused)
         yield e.stop()
 
+    @defer.inlineCallbacks
+    def test_dont_process_when_paused(self):
+        e = ExecutionEngine(get_crawler(MySpider), lambda _: None)
+        yield e.open_spider(MySpider(), [])
+        e.start()
+        e.pause()
+
+        # Override _needs_backout, which would be called if it continued
+        # with a dummy function.
+        flag = {"called": False}
+
+        def dummy():
+            flag["called"] = True
+
+        original = e._needs_backout
+        e._needs_backout = dummy
+
+        e._next_request()
+        self.assertFalse(flag["called"])
+
+        # Clean up
+        e._process_next_request = original
+        yield e.stop()
+
+
 def test_request_scheduled_signal(caplog):
     class TestScheduler(BaseScheduler):
         def __init__(self):
