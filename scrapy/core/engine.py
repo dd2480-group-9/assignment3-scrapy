@@ -23,6 +23,7 @@ from scrapy.http import Request, Response
 from scrapy.utils.log import failure_to_exc_info, logformatter_adapter
 from scrapy.utils.misc import build_from_crawler, load_object
 from scrapy.utils.reactor import CallLaterOnce
+from tests import coverage_data
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator, Iterable, Iterator
@@ -166,25 +167,30 @@ class ExecutionEngine:
 
     def _next_request(self) -> None:
         if self.slot is None:
+            coverage_data["_next_request"][0] = True
             return
 
         assert self.spider is not None  # typing
 
         if self.paused:
+            coverage_data["_next_request"][1] = True
             return
 
         while (
             not self._needs_backout()
             and self._next_request_from_scheduler() is not None
         ):
-            pass
+            coverage_data["_next_request"][2] = True
 
         if self.slot.start_requests is not None and not self._needs_backout():
+            coverage_data["_next_request"][3] = True
             try:
                 request_or_item = next(self.slot.start_requests)
             except StopIteration:
+                coverage_data["_next_request"][4] = True
                 self.slot.start_requests = None
             except Exception:
+                coverage_data["_next_request"][5] = True
                 self.slot.start_requests = None
                 logger.error(
                     "Error while obtaining start requests",
@@ -193,10 +199,13 @@ class ExecutionEngine:
                 )
             else:
                 if isinstance(request_or_item, Request):
+                    coverage_data["_next_request"][6] = True
                     self.crawl(request_or_item)
                 elif is_item(request_or_item):
+                    coverage_data["_next_request"][7] = True
                     self.scraper.start_itemproc(request_or_item, response=None)
                 else:
+                    coverage_data["_next_request"][8] = True
                     logger.error(
                         f"Got {request_or_item!r} among start requests. Only "
                         f"requests and items are supported. It will be "
@@ -204,6 +213,7 @@ class ExecutionEngine:
                     )
 
         if self.spider_is_idle() and self.slot.close_if_idle:
+            coverage_data["_next_request"][9] = True
             self._spider_idle()
 
     def _needs_backout(self) -> bool:
