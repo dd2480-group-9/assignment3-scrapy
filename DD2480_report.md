@@ -31,10 +31,11 @@ The examples and tests run smoothly on supported systems.
 
 ## Complexity
 
+
 #### 1. What are your results for five complex functions?
 * `_next_request` got a CCN of 11 with manual counting using the formula $\pi-n+2$ while lizard got a CCN of 13. However, lizard caluclates the CCN by amount of decisions plus one. Using that formula with manual counting yield the same result of 13.
 * `run` got a cyclomatic complexity of 14 using the radon tool, which uses the formula 1 + number of decisions. By using the same formula, the complexity was calculated by hand to be 14 as well. 
-* `func`
+* `_parse_sitemap` got a CC of 12 with the lizard tool, that uses the formula 1 + number of decisions. By using the same formula, the complexity was calculated by hand to be 12 as well. 
 * `get_func_args` got a complexity of 11 using lizard. When manually calculated the result was 11 as well by using the formula 1 + number of decisions where number of decisions was 10. 
 * `func`
 #### 2. Are the functions just complex, or also long?
@@ -43,7 +44,7 @@ All of the functions are only moderatly complex and for the most part also fairl
 #### 3. What is the purpose of the functions?
 * `_next_request`: This function handles scheduling requests and error handling. It gets a bit complex because it has to manage several control flows and exceptions, which is just part of its job.
 * `run`: The run function loads and executes contract tests for spiders. It gets complex due to it handling both contract-tested methods and contract-based spider tests. 
-* `func`
+* `_parse_sitemap`: This function is responsible for parsing sitemaps (either from a website or a robots.txt file) and extracting URLs that need to be processed further by the crawler.
 * `get_func_args`. This function returns the list of the arguments of a calleble. The high CC does not come from the functionality of the function which is taking the arguments from a function. It comes from handling edge cases, exceptions, and etc.
 * `func`
 
@@ -52,6 +53,7 @@ Yes, lizard and Radon counts exceptions. Each except clause is considered a bran
 
 #### 5. Is the documentation clear w.r.t. all the possible outcomes?
 The documentation explains the general behavior but could be improved to detail the outcomes of each branch. For many of the functions there are barely any docstrings or comments describing the code and different branching in the functions.
+
 
 
 ## Refactoring
