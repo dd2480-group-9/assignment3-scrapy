@@ -36,7 +36,7 @@ The examples and tests run smoothly on supported systems.
 * `_next_request` got a CCN of 11 with manual counting using the formula $\pi-n+2$ while lizard got a CCN of 13. However, lizard caluclates the CCN by amount of decisions plus one. Using that formula with manual counting yield the same result of 13.
 * `run` got a cyclomatic complexity of 14 using the radon tool, which uses the formula 1 + number of decisions. By using the same formula, the complexity was calculated by hand to be 14 as well. 
 * `_parse_sitemap` got a CC of 12 with the lizard tool, that uses the formula 1 + number of decisions. By using the same formula, the complexity was calculated by hand to be 12 as well. 
-* `func`
+* `get_func_args` got a complexity of 11 using lizard. When manually calculated the result was 11 as well by using the formula 1 + number of decisions where number of decisions was 10. 
 * `func`
 #### 2. Are the functions just complex, or also long?
 All of the functions are only moderatly complex and for the most part also fairly short. There isn't a clear correlation between the CCN and NLOC.
@@ -45,7 +45,7 @@ All of the functions are only moderatly complex and for the most part also fairl
 * `_next_request`: This function handles scheduling requests and error handling. It gets a bit complex because it has to manage several control flows and exceptions, which is just part of its job.
 * `run`: The run function loads and executes contract tests for spiders. It gets complex due to it handling both contract-tested methods and contract-based spider tests. 
 * `_parse_sitemap`: This function is responsible for parsing sitemaps (either from a website or a robots.txt file) and extracting URLs that need to be processed further by the crawler.
-* `func`
+* `get_func_args`. This function returns the list of the arguments of a calleble. The high CC does not come from the functionality of the function which is taking the arguments from a function. It comes from handling edge cases, exceptions, and etc.
 * `func`
 
 #### 4. Are exceptions taken into account in the given measurements?
@@ -58,13 +58,66 @@ The documentation explains the general behavior but could be improved to detail 
 
 ## Refactoring
 
-Plan for refactoring complex code:
+### Plan for `_next_request`:
+The `_next_request`function handles the engine workflow. Although the code isn’t overly complex and refactoring isn’t strictly necessary, extracting some logic into helper functions could improve clarity and lower the CCN of the function.`_next_request` can be divided into four main parts:
 
-Estimated impact of refactoring (lower CC, but other drawbacks?).
+#### Early checks:
+```python
+if self.slot is None:
+    return
 
-Carried out refactoring (optional, P+):
+assert self.spider is not None  # typing
 
-git diff ...
+if self.paused:
+    return
+```
+These initial checks are reasonable to keep at the beginning of the function. Depending on how the cyclomatic complexity is calculated, they might not even affect the CCN. However, you could extract these into a helper function (for example `_can_process_request`) that encapsulates all the early conditions.
+
+#### Scheduler handling
+```python
+while (
+    not self._needs_backout()
+    and self._next_request_from_scheduler() is not None
+):
+    pass
+```
+This loop waits until there are no scheduler requests before proceeding. Although it’s not very complex and fits well in the function, extracting it into its own helper (for example `_process_scheduler_requests`) could make the overall functionality of `_next_request` more focused.
+
+
+#### Processing next requests
+```python
+if self.slot.start_requests is not None and not self._needs_backout():
+    try:
+        request_or_item = next(self.slot.start_requests)
+    except StopIteration:
+        self.slot.start_requests = None
+    except Exception:
+        self.slot.start_requests = None
+        logger.error(
+            "Error while obtaining start requests",
+            exc_info=True,
+            extra={"spider": self.spider},
+        )
+    else:
+        if isinstance(request_or_item, Request):
+            self.crawl(request_or_item)
+        elif is_item(request_or_item):
+            self.scraper.start_itemproc(request_or_item, response=None)
+        else:
+            logger.error(
+                f"Got {request_or_item!r} among start requests. Only "
+                f"requests and items are supported. It will be "
+                f"ignored."
+            )
+```
+This is the core part of the function that handles processing the next request. It’s suggested to keep this section within `_next_request` since it’s central to its purpose, though you might consider extracting parts of the error handling if it becomes more complex in teh future.
+
+#### Idle-State handling
+```python
+if self.spider_is_idle() and self.slot.close_if_idle:
+    self._spider_idle()
+```
+This final section handles the idle state of the spider. Even though it isn’t overly complex, moving it to a dedicated helper function (for example `_handle_idle_state`) could make the code more coherent and improve readability.
 
 ## Coverage
 
