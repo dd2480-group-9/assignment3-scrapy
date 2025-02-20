@@ -33,7 +33,7 @@ The examples and tests run smoothly on supported systems.
 
 #### 1. What are your results for five complex functions?
 * `_next_request` got a CCN of 11 with manual counting using the formula $\pi-n+2$ while lizard got a CCN of 13. However, lizard caluclates the CCN by amount of decisions plus one. Using that formula with manual counting yield the same result of 13.
-* `func`
+* `run` got a cyclomatic complexity of 14 using the radon tool, which uses the formula 1 + number of decisions. By using the same formula, the complexity was calculated by hand to be 14 as well. 
 * `func`
 * `func`
 * `func`
@@ -42,13 +42,13 @@ All of the functions are only moderatly complex and for the most part also fairl
 
 #### 3. What is the purpose of the functions?
 * `_next_request`: This function handles scheduling requests and error handling. It gets a bit complex because it has to manage several control flows and exceptions, which is just part of its job.
-* `func`
+* `run`: The run function loads and executes contract tests for spiders. It gets complex due to it handling both contract-tested methods and contract-based spider tests. 
 * `func`
 * `func`
 * `func`
 
 #### 4. Are exceptions taken into account in the given measurements?
-Yes, lizard counts exceptions. Each except clause is considered a branch, thus increasing the cyclomatic complexity.
+Yes, lizard and Radon counts exceptions. Each except clause is considered a branch, thus increasing the cyclomatic complexity.
 
 #### 5. Is the documentation clear w.r.t. all the possible outcomes?
 The documentation explains the general behavior but could be improved to detail the outcomes of each branch. For many of the functions there are barely any docstrings or comments describing the code and different branching in the functions.
