@@ -36,7 +36,7 @@ The examples and tests run smoothly on supported systems.
 * `run` got a cyclomatic complexity of 14 using the radon tool, which uses the formula 1 + number of decisions. By using the same formula, the complexity was calculated by hand to be 14 as well. 
 * `func`
 * `func`
-* `func`
+* `dataReceived` the number of decisions was 10 using manual counting, while lizard returned 11 because it used the formula number of decisions + 1. The results from lizard align with the manual count. 
 #### 2. Are the functions just complex, or also long?
 All of the functions are only moderatly complex and for the most part also fairly short. There isn't a clear correlation between the CCN and NLOC.
 
