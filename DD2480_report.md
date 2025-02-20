@@ -45,7 +45,7 @@ All of the functions are only moderatly complex and for the most part also fairl
 * `run`: The run function loads and executes contract tests for spiders. It gets complex due to it handling both contract-tested methods and contract-based spider tests. 
 * `func`
 * `func`
-* `func`
+* `dataReceived`: This function runs contract tests, either executing the tests and reporting results, or listing which spider methods are available for testing.
 
 #### 4. Are exceptions taken into account in the given measurements?
 Yes, lizard and Radon counts exceptions. Each except clause is considered a branch, thus increasing the cyclomatic complexity.
