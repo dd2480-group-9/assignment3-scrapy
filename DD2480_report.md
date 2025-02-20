@@ -73,10 +73,7 @@ These initial checks are reasonable to keep at the beginning of the function. De
 
 #### Scheduler handling
 ```python
-while (
-    not self._needs_backout()
-    and self._next_request_from_scheduler() is not None
-):
+while not self._needs_backout() and self._next_request_from_scheduler() is not None:
     pass
 ```
 This loop waits until there are no scheduler requests before proceeding. Although it’s not very complex and fits well in the function, extracting it into its own helper (for example `_process_scheduler_requests`) could make the overall functionality of `_next_request` more focused.
@@ -116,6 +113,65 @@ if self.spider_is_idle() and self.slot.close_if_idle:
     self._spider_idle()
 ```
 This final section handles the idle state of the spider. Even though it isn’t overly complex, moving it to a dedicated helper function (for example `_handle_idle_state`) could make the code more coherent and improve readability.
+
+### Plan for 'run' 
+
+The run function includes many if statements, which increases the complexity. It also handles several things, such as setting up the test environment, processing spiders, handling contract requests and running tests. These could be broken down into several different methods, according to the following structure:
+
+```python 
+    def setup_test_environment(self, opts: argparse.Namespace):
+        contracts = build_component_list(self.settings.getwithbase("SPIDER_CONTRACTS"))
+        conman = ContractsManager(load_object(c) for c in contracts)
+        verbosity = 2 if opts.verbose else 1
+        runner = TextTestRunner(verbosity=verbosity)
+        result = TextTestResult(runner.stream, runner.descriptions, runner.verbosity)
+    return conman, result
+
+    def process_spiders(self, args: list[str], opts: argparse.Namespace, conman, result):
+        contract_reqs = defaultdict(list)
+
+        assert self.crawler_process
+        spider_loader = self.crawler_process.spider_loader
+
+        with set_environ(SCRAPY_CHECK="true"):
+            for spidername in args or spider_loader.list():  
+                spidercls = spider_loader.load(spidername)
+                spidercls.start_requests = lambda s: conman.from_spider(s, result)
+
+                tested_methods = conman.tested_methods_from_spidercls(spidercls)
+
+                if opts.list:
+                    for method in tested_methods:
+                        contract_reqs[spidercls.name].append(method)
+                elif tested_methods:
+                    self.crawler_process.crawl(spidercls)
+
+    return contract_reqs
+
+    def handle_contract_logging(self, contract_reqs, opts):
+        for spider, methods in sorted(contract_reqs.items()):
+            if not methods and not opts.verbose:
+                continue
+            print(spider)
+            for method in sorted(methods):
+                print(f"  * {method}")
+
+    def execute_tests(self, result):
+        start = time.time()
+        self.crawler_process.start()
+        stop = time.time()
+
+        result.printErrors()
+        result.printSummary(start, stop)
+
+        if result.wasSuccessful():
+            self.exitcode = 0
+        else:
+            self.exitcode = 1
+   ```
+By breaking down the function into four helper methods where each method only handles one task makes it easier to test and debug. It also reduces the overall complexity to be an average of 4.25 instead of 14. 
+
+
 
 ## Coverage
 
