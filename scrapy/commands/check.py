@@ -8,6 +8,7 @@ from scrapy.commands import ScrapyCommand
 from scrapy.contracts import ContractsManager
 from scrapy.utils.conf import build_component_list
 from scrapy.utils.misc import load_object, set_environ
+from tests import coverage_data
 
 
 class TextTestResult(_TextTestResult):
@@ -71,7 +72,17 @@ class Command(ScrapyCommand):
         # load contracts
         contracts = build_component_list(self.settings.getwithbase("SPIDER_CONTRACTS"))
         conman = ContractsManager(load_object(c) for c in contracts)
-        runner = TextTestRunner(verbosity=2 if opts.verbose else 1)
+        # runner = TextTestRunner(verbosity=2 if opts.verbose else 1) #1, 2
+  
+        if opts.verbose: #0
+            verbosity = 2
+            coverage_data["run"][0] = True
+        else: #1
+            verbosity = 1
+            coverage_data["run"][1] = True
+        
+        runner = TextTestRunner(verbosity=verbosity)
+
         result = TextTestResult(runner.stream, runner.descriptions, runner.verbosity)
 
         # contract requests
@@ -81,30 +92,48 @@ class Command(ScrapyCommand):
         spider_loader = self.crawler_process.spider_loader
 
         with set_environ(SCRAPY_CHECK="true"):
-            for spidername in args or spider_loader.list():
+            for spidername in args or spider_loader.list(): #2
+                
                 spidercls = spider_loader.load(spidername)
-                spidercls.start_requests = lambda s: conman.from_spider(s, result)  # type: ignore[assignment,method-assign,return-value]
+                spidercls.start_requests = lambda s: conman.from_spider(s, result) # type: ignore[assignment,method-assign,return-value]
 
                 tested_methods = conman.tested_methods_from_spidercls(spidercls)
-                if opts.list:
-                    for method in tested_methods:
+
+                if opts.list: #3
+                    for method in tested_methods: #4
                         contract_reqs[spidercls.name].append(method)
-                elif tested_methods:
+                        coverage_data["run"][4] = True
+                    coverage_data["run"][3] = True
+                elif tested_methods: #5
                     self.crawler_process.crawl(spidercls)
+                    coverage_data["run"][5] = True
+                coverage_data["run"][2] = True
 
             # start checks
-            if opts.list:
-                for spider, methods in sorted(contract_reqs.items()):
-                    if not methods and not opts.verbose:
+            if opts.list: #6
+                for spider, methods in sorted(contract_reqs.items()): #7
+                    if not methods and not opts.verbose: #8
+                        coverage_data["run"][8] = True
                         continue
                     print(spider)
-                    for method in sorted(methods):
+                    for method in sorted(methods): #9
                         print(f"  * {method}")
-            else:
+                        coverage_data["run"][9] = True
+                    coverage_data["run"][7] = True
+                coverage_data["run"][6] = True
+            else: #10
                 start = time.time()
                 self.crawler_process.start()
                 stop = time.time()
 
                 result.printErrors()
                 result.printSummary(start, stop)
-                self.exitcode = int(not result.wasSuccessful())
+
+                #self.exitcode = int(not result.wasSuccessful()) #12
+                if result.wasSuccessful():  # Branch 11 
+                    coverage_data["run"][11] = True
+                    self.exitcode = 0
+                else:  # Branch 12
+                    coverage_data["run"][12] = True
+                    self.exitcode = 1
+                coverage_data["run"][10] = True
