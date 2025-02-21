@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 from scrapy.exceptions import ScrapyDeprecationWarning
 from scrapy.utils.asyncgen import as_async_generator
+from tests import coverage_data
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable, Iterator
@@ -213,31 +214,39 @@ def binary_is_text(data: bytes) -> bool:
 
 
 def get_func_args(func: Callable[..., Any], stripself: bool = False) -> list[str]:
-    """Return the argument name list of a callable object"""
     if not callable(func):
+        coverage_data["get_func_args"][0] = True
         raise TypeError(f"func must be callable, got '{type(func).__name__}'")
-
+    coverage_data["get_func_args"][1] = True
     args: list[str] = []
     try:
         sig = inspect.signature(func)
+        coverage_data["get_func_args"][2] = True
     except ValueError:
+        coverage_data["get_func_args"][3] = True
         return args
-
     if isinstance(func, partial):
+        coverage_data["get_func_args"][4] = True
         partial_args = func.args
         partial_kw = func.keywords
-
         for name, param in sig.parameters.items():
             if param.name in partial_args:
+                coverage_data["get_func_args"][5] = True
                 continue
             if partial_kw and param.name in partial_kw:
+                coverage_data["get_func_args"][6] = True
                 continue
+            coverage_data["get_func_args"][7] = True
             args.append(name)
     else:
+        coverage_data["get_func_args"][8] = True
         args = list(sig.parameters)
-
     if stripself and args and args[0] == "self":
+        coverage_data["get_func_args"][9] = True
         args = args[1:]
+    else:
+        coverage_data["get_func_args"][10] = True
+    coverage_data["get_func_args"][11] = True
     return args
 
 

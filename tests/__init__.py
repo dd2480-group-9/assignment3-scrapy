@@ -38,7 +38,7 @@ def get_testdata(*paths: str) -> bytes:
 coverage_data = {
     "_next_request": [False] * 10,
     "_parse_sitemap": [False] * 12,
-    "get_func_args": [False],
+    "get_func_args": [False] * 12,
     "run": [False],
     "data_received": [False],
 }
