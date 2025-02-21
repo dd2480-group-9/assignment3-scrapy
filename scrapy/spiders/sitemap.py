@@ -68,50 +68,50 @@ class SitemapSpider(Spider):
         yield from entries
 
     def _parse_sitemap(self, response: Response) -> Iterable[Request]:
-            coverage_data["_parse_sitemap"][0] = True  # This branch is taken
-            if response.url.endswith("/robots.txt"):
-                coverage_data["_parse_sitemap"][1] = True  # This branch is taken
-                for url in sitemap_urls_from_robots(response.text, base_url=response.url):
-                    coverage_data["_parse_sitemap"][2] = True  # This branch is taken
-                    yield Request(url, callback=self._parse_sitemap)
-            else:
-                body = self._get_sitemap_body(response)
-                coverage_data["_parse_sitemap"][3] = True  # This branch is taken
-                if body is None:
-                    coverage_data["_parse_sitemap"][4] = True  # This branch is taken
-                    logger.warning(
-                        "Ignoring invalid sitemap: %(response)s",
-                        {"response": response},
-                        extra={"spider": self},
-                    )
-                    return
+        coverage_data["_parse_sitemap"][0] = True  # This branch is taken
+        if response.url.endswith("/robots.txt"):
+            coverage_data["_parse_sitemap"][1] = True  # This branch is taken
+            for url in sitemap_urls_from_robots(response.text, base_url=response.url):
+                coverage_data["_parse_sitemap"][2] = True  # This branch is taken
+                yield Request(url, callback=self._parse_sitemap)
+        else:
+            body = self._get_sitemap_body(response)
+            coverage_data["_parse_sitemap"][3] = True  # This branch is taken
+            if body is None:
+                coverage_data["_parse_sitemap"][4] = True  # This branch is taken
+                logger.warning(
+                    "Ignoring invalid sitemap: %(response)s",
+                    {"response": response},
+                    extra={"spider": self},
+                )
+                return
 
-                s = Sitemap(body)
-                it = self.sitemap_filter(s)
+            s = Sitemap(body)
+            it = self.sitemap_filter(s)
 
-                if s.type == "sitemapindex":
-                    coverage_data["_parse_sitemap"][5] = True  # This branch is taken
-                    for loc in iterloc(it, self.sitemap_alternate_links):
-                        coverage_data["_parse_sitemap"][6] = True  # This branch is taken
-                        if any(x.search(loc) for x in self._follow):
-                            coverage_data["_parse_sitemap"][7] = (
+            if s.type == "sitemapindex":
+                coverage_data["_parse_sitemap"][5] = True  # This branch is taken
+                for loc in iterloc(it, self.sitemap_alternate_links):
+                    coverage_data["_parse_sitemap"][6] = True  # This branch is taken
+                    if any(x.search(loc) for x in self._follow):
+                        coverage_data["_parse_sitemap"][7] = (
+                            True  # This branch is taken
+                        )
+                        yield Request(loc, callback=self._parse_sitemap)
+            elif s.type == "urlset":
+                coverage_data["_parse_sitemap"][8] = True  # This branch is taken
+                for loc in iterloc(it, self.sitemap_alternate_links):
+                    coverage_data["_parse_sitemap"][9] = True  # This branch is taken
+                    for r, c in self._cbs:
+                        coverage_data["_parse_sitemap"][10] = (
+                            True  # This branch is taken
+                        )
+                        if r.search(loc):
+                            coverage_data["_parse_sitemap"][11] = (
                                 True  # This branch is taken
                             )
-                            yield Request(loc, callback=self._parse_sitemap)
-                elif s.type == "urlset":
-                    coverage_data["_parse_sitemap"][8] = True  # This branch is taken
-                    for loc in iterloc(it, self.sitemap_alternate_links):
-                        coverage_data["_parse_sitemap"][9] = True  # This branch is taken
-                        for r, c in self._cbs:
-                            coverage_data["_parse_sitemap"][10] = (
-                                True  # This branch is taken
-                            )
-                            if r.search(loc):
-                                coverage_data["_parse_sitemap"][11] = (
-                                    True  # This branch is taken
-                                )
-                                yield Request(loc, callback=c)
-                                break
+                            yield Request(loc, callback=c)
+                            break
 
     def _get_sitemap_body(self, response: Response) -> bytes | None:
         """Return the sitemap body contained in the given response,
