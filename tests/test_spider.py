@@ -6,6 +6,7 @@ from logging import WARNING
 from pathlib import Path
 from typing import Any
 from unittest import mock
+from unittest.mock import MagicMock
 
 from testfixtures import LogCapture
 from twisted.internet.defer import inlineCallbacks
@@ -698,6 +699,82 @@ Sitemap: /sitemap-relative-url.xml
             [req.url for req in spider._parse_sitemap(r)],
             ["http://www.example.com/sitemap2.xml"],
         )
+
+    def test_parse_sitemap_body_is_none():
+        # Mock the response body for a case where `_get_sitemap_body` returns None
+        response = Response(url="http://example.com/sitemap.xml", body=b"")
+
+        # Mock the spider
+        spider = MagicMock()
+        spider._get_sitemap_body.return_value = None  # Simulate invalid body (None)
+
+        # Run the _parse_sitemap method
+        result = list(spider._parse_sitemap(response))
+
+        # Assert that the "body is None" branch was taken
+        assert (
+            spider._parse_sitemap[4] == True
+        )  # This branch is taken (when body is None)
+        assert not result  # No request should be yielded if the body is None
+
+    def test_parse_sitemap_urlset_with_callback_and_break():
+        # Mock the response body for a urlset
+        body = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url>
+                <loc>http://example.com/page1</loc>
+            </url>
+            <url>
+                <loc>http://example.com/page2</loc>
+            </url>
+        </urlset>
+        """
+
+        # Mock the sitemap object with 'urlset' type
+        sitemap_mock = MagicMock()
+        sitemap_mock.type = "urlset"
+
+        # Mock iterloc to return valid locations (URLs)
+        def iterloc(sitemap, links):
+            yield "http://example.com/page1"
+            yield "http://example.com/page2"
+
+        # Mock the regex object `r` to always match
+        r_mock = MagicMock()
+        r_mock.search.return_value = (
+            True  # Make the search always return True (matches)
+        )
+
+        # Set up the list of callbacks (with mocked callback function)
+        spider = MagicMock()
+        spider._cbs = [(r_mock, "callback_function")]
+
+        # Mock the Response object
+        response = Response(url="http://example.com/sitemap.xml", body=body.encode())
+
+        # Run the _parse_sitemap method
+        result = list(spider._parse_sitemap(response))
+
+        # Assert that the branch for urlset is taken
+        assert spider._parse_sitemap[8] == True  # This branch is taken for urlset
+        assert (
+            spider._parse_sitemap[9] == True
+        )  # This branch is taken for iterating locs
+
+        # Check that the Request was yielded with the correct loc and callback
+        assert isinstance(result[0], Request)
+        assert result[0].url == "http://example.com/page1"
+        assert result[0].callback == "callback_function"
+
+        # Verify that break was triggered by checking that only one request was yielded
+        assert len(result) == 1  # Only one request should be yielded due to 'break'
+
+        # Additional assertion to make sure 'r.search(loc)' was called
+        r_mock.search.assert_called_with("http://example.com/page1")
+
+        # Verify that the break stopped further iteration (only one result)
+        assert len(result) == 1  # Only one request due to 'break' after the first match
 
     def test_compression_bomb_setting(self):
         settings = {"DOWNLOAD_MAXSIZE": 10_000_000}
