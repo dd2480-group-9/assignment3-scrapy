@@ -36,11 +36,11 @@ def get_testdata(*paths: str) -> bytes:
 
 # initialize coverage_data to keep track of branch coverage
 coverage_data = {
-    "_get_serialized_fields": [False],
-    "_next_request": [False],
+    "_next_request": [False] * 10,
+    "_parse_sitemap": [False] * 12,
+    "get_func_args": [False] * 12,
     "run": [False],
-    "func_4": [False],
-    "func_5": [False],
+    "data_received": [False],
 }
 
 
