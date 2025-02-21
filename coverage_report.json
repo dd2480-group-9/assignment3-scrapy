@@ -1,7 +1,4 @@
 {
-  "_get_serialized_fields": [
-    false
-  ],
   "_next_request": [
     true,
     false,
@@ -14,13 +11,18 @@
     true,
     true
   ],
-  "_process_spider_output": [
-    false
-  ],
-  "func_4": [
-    false
-  ],
-  "func_5": [
-    false
+  "_parse_sitemap": [
+    true,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
   ]
 }
