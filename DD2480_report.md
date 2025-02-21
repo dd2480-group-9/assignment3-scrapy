@@ -236,6 +236,64 @@ for loc in iterloc(it, self.sitemap_alternate_links):
  ```
 Here its the same thing, this would be called from the _parse_sitemap function and could be implemented as something like  process_URL_links
 
+### Plan for `get_func_args`:
+
+The `get_func_args` function returns the arguments of a function. The complexity of the function does not come from its functionality, but it comes from the checks that is made for edge cases. However, using helper functions can improve readability and makes it easy to test the functions while not necessarily improving complexity.
+
+#### Retrieving Signature:
+```python
+    def get_signature(func: Callable[..., Any]) -> inspect.Signature:
+        try:
+            return inspect.signature(func)
+        except ValueError:
+            return None
+```
+This will handle signature retrieval from a callable.
+
+#### Filtering Partial Arguments:
+```python
+    def filter_partial_args(sig: inspect.Signature, partial_func: partial) -> list[str]:   
+        partial_args = partial_func.args
+        partial_kw = partial_func.keywords or {}
+        filtered_args = []
+        for name, param in sig.parameters.items():
+            if param.name in partial_args:
+                continue
+            if param.name in partial_kw:
+                continue
+            filtered_args.append(name)
+        return filtered_args
+```
+This will take the signature, the partial.args, and partial.keywords, and return the filtered list of parameter names.
+
+#### Stripping Self:
+```python
+def strip_self(args: list[str]) -> list[str]:
+    return args[1:] if args and args[0] == "self" else args
+```
+This will remove self from args if needed.
+
+#### Main Function:
+```python
+def get_func_args(func: Callable[..., Any], stripself: bool = False) -> list[str]:
+    if not callable(func):
+        raise TypeError(f"func must be callable, got '{type(func).__name__}'")
+
+    sig = get_signature(func)
+    if sig is None:
+        return []
+
+    if isinstance(func, partial):
+        args = filter_partial_args(sig, func)
+    else:
+        args = list(sig.parameters)
+
+    if stripself:
+        args = strip_self(args)
+    return args
+```
+Now the main function is easy to read, test, and modify when needed. Since the complexity was necessary due to checks, readability is improved but complexity stays similar.
+
 
 ## Coverage
 
