@@ -202,6 +202,10 @@ class UtilsPythonTestCase(unittest.TestCase):
         def f3(a, b=None, *, c=None):
             pass
 
+        # Function to cover 'param.name in partial_args' case.
+        def f4(*args):
+            pass
+
         class A:
             def __init__(self, a, b, c):
                 pass
@@ -218,6 +222,7 @@ class UtilsPythonTestCase(unittest.TestCase):
         partial_f1 = functools.partial(f1, None)
         partial_f2 = functools.partial(f1, b=None)
         partial_f3 = functools.partial(partial_f2, None)
+        partial_f4 = functools.partial(f4, "args")
 
         self.assertEqual(get_func_args(f1), ["a", "b", "c"])
         self.assertEqual(get_func_args(f2), ["a", "b", "c"])
@@ -231,6 +236,22 @@ class UtilsPythonTestCase(unittest.TestCase):
         self.assertEqual(get_func_args(object), [])
         self.assertEqual(get_func_args(str.split, stripself=True), ["sep", "maxsplit"])
         self.assertEqual(get_func_args(" ".join, stripself=True), ["iterable"])
+        # Assertion  to cover 'param.name in partial_args' case.
+        self.assertEqual(get_func_args(partial_f4), [])
+
+        # Tests when a non-callable is called with the function.
+        with self.assertRaises(TypeError):
+            get_func_args(41)
+
+        # Covers when recieved a vakue error from signature
+        from unittest import mock
+
+        with mock.patch("inspect.signature", side_effect=ValueError):
+
+            def f5(x):
+                pass
+
+            self.assertEqual(get_func_args(f5), [])
 
         if sys.version_info >= (3, 13) or platform.python_implementation() == "PyPy":
             # the correct and correctly extracted signature
