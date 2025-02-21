@@ -319,11 +319,11 @@ its output?
 
 ### Evaluation
 
-1. How detailed is your coverage measurement?
+1. How detailed is your coverage measurement? It is not sufficiently detailed and it is destructive to the codebase. 
 
-2. What are the limitations of your own tool?
+2. What are the limitations of your own tool? The tools we have are targeted toward a single function, therefore, it is inefficient. 
 
-3. Are the results of your tool consistent with existing coverage tools?
+3. Are the results of your tool consistent with existing coverage tools? Yes
 
 ## Coverage improvement
 
@@ -341,16 +341,16 @@ Number of test cases added: two per team member (P) or at least four (P+).
 
 ## Self-assessment: Way of working
 
-Current state according to the Essence standard: ...
+Current state according to the Essence standard: In-place (The whole team is involved in the inspection and adaptation of the way-of-working)
 
-Was the self-assessment unanimous? Any doubts about certain items?
+Was the self-assessment unanimous? Any doubts about certain items? Yes, the self-assessment was unanimous. Other than the way-of-working, there were no doubts.
 
-How have you improved so far?
+How have you improved so far? We have learned how to use git, write unit tests, structure repositories, and enhance our collaboration skills. 
 
-Where is potential for improvement?
+Where is potential for improvement? Our group needs to communicate more and meet on-site to distribute the tasks evenly and avoid chaos.
 
 ## Overall experience
 
-What are your main take-aways from this project? What did you learn?
+What are your main takeaways from this project? What did you learn? We learned the risks and challenges of using open-source projects. We also taught ourselves to improvise and apply such projects to our use. 
 
-Is there something special you want to mention here?
+Is there something special you want to mention here? Don't EVER use push force, especially the day before the deadline. 
