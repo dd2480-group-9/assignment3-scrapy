@@ -39,7 +39,7 @@ coverage_data = {
     "_get_serialized_fields": [False],
     "_next_request": [False],
     "run": [False],
-    "func_4": [False],
+    "parse_sitemap": [False]*11,
     "func_5": [False],
 }
 
