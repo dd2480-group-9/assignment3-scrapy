@@ -118,6 +118,71 @@ if self.spider_is_idle() and self.slot.close_if_idle:
 ```
 This final section handles the idle state of the spider. Even though it isn’t overly complex, moving it to a dedicated helper function (for example `_handle_idle_state`) could make the code more coherent and improve readability.
 
+### Plan for `dataReceived`:
+The `dataReceived` function is not complex since the  CCN is 11. However, diving the function into smaller bits of code may improve the clarity and reveal potential improvements for the code complexity. The function can be divided into 5 parts. 
+
+#### 
+```python
+    def dataReceived(self, bodyBytes: bytes) -> None:
+        # Return early if finished
+        if self._finished.called:
+            return
+
+        assert self.transport
+        self._update_body_buffer(bodyBytes)
+        self._check_download_stop_signal(bodyBytes)
+        self._check_max_size()
+        self._check_warn_size()
+
+    def _update_body_buffer(self, bodyBytes: bytes) -> None:
+        self._bodybuf.write(bodyBytes)
+        self._bytes_received += len(bodyBytes)
+
+    def _check_download_stop_signal(self, bodyBytes: bytes) -> None:
+        bytes_received_result = self._crawler.signals.send_catch_log(
+            signal=signals.bytes_received,
+            data=bodyBytes,
+            request=self._request,
+            spider=self._crawler.spider,
+        )
+        for handler, result in bytes_received_result:
+            if isinstance(result, Failure) and isinstance(result.value, StopDownload):
+                self._handle_download_stop(handler, result)
+
+    def _handle_download_stop(self, handler, result) -> None:
+        logger.debug(
+            "Download stopped for %(request)s from signal handler %(handler)s",
+            {"request": self._request, "handler": handler.__qualname__},
+        )
+        self.transport.stopProducing()
+        self.transport.loseConnection()
+        failure = result if result.value.fail else None
+        self._finish_response(flags=["download_stopped"], failure=failure)
+
+    def _check_max_size(self) -> None:
+        if self._maxsize and self._bytes_received > self._maxsize:
+            logger.warning(
+                "Received (%(bytes)s) bytes larger than download max size (%(maxsize)s) in request %(request)s.",
+                {
+                    "bytes": self._bytes_received,
+                    "maxsize": self._maxsize,
+                    "request": self._request,
+                },
+            )
+            self._bodybuf.truncate(0)
+            self._finished.cancel()
+
+    def _check_warn_size(self) -> None:
+        if self._warnsize and self._bytes_received > self._warnsize and not self._reached_warnsize:
+            self._reached_warnsize = True
+            logger.warning(
+                "Received more bytes than download warn size (%(warnsize)s) in request %(request)s.",
+                {"warnsize": self._warnsize, "request": self._request},
+            )
+
+```
+Diving the function into 5 different sub-functions allows enhanced readability and error handling. 
+
 ## Coverage
 
 ### Tools
