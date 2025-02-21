@@ -82,7 +82,6 @@ while (
 ```
 This loop waits until there are no scheduler requests before proceeding. Although it’s not very complex and fits well in the function, extracting it into its own helper (for example `_process_scheduler_requests`) could make the overall functionality of `_next_request` more focused.
 
-
 #### Processing next requests
 ```python
 if self.slot.start_requests is not None and not self._needs_backout():
@@ -118,10 +117,10 @@ if self.spider_is_idle() and self.slot.close_if_idle:
 ```
 This final section handles the idle state of the spider. Even though it isn’t overly complex, moving it to a dedicated helper function (for example `_handle_idle_state`) could make the code more coherent and improve readability.
 
+
 ### Plan for `dataReceived`:
 The `dataReceived` function is not complex since the  CCN is 11. However, diving the function into smaller bits of code may improve the clarity and reveal potential improvements for the code complexity. The function can be divided into 5 parts. 
 
-#### 
 ```python
     def dataReceived(self, bodyBytes: bytes) -> None:
         # Return early if finished
@@ -182,6 +181,61 @@ The `dataReceived` function is not complex since the  CCN is 11. However, diving
 
 ```
 Diving the function into 5 different sub-functions allows enhanced readability and error handling. 
+
+
+### Plan for _parse_sitemap
+The _parse_sitemap function handles multiple responsibilities and can be refactored into smaller helper functions, each focused on a specific task. This would improve testability, debugging, and readability, while also lowering the overall complexity. Although the core implementation may not need improvement, breaking it into smaller, single-purpose functions will reduce complexity and make the code easier to manage. So the refactoring could be done in may ways perhaps, but could be divided into new helper functions and the _parse_sitemap  function with only simple if statements and calls to the helpers. These parts can be as the following: 
+
+#### Check if response URL 
+ ```python  
+   if response.url.endswith("/robots.txt"):
+    ...
+``` 
+This early check is good to identify if the URL is from robots.txt. To simplify the logic and improve clarity, we could extract this check into its own helper function (for example  _is_robots_txt_url)
+
+#### Fetching and Validating Sitemap Body
+ ```python  
+     else:
+       ...
+```
+Same here, the if statement inside the else is creating a complicated application and can therefore be separated. The else could remain and then call a helper function implementing this part (for example _process_sitemap_body)
+
+#### Processing sitemap
+ ```python  
+ 
+            if s.type == "sitemapindex":
+                for loc in iterloc(it, self.sitemap_alternate_links):
+                    if any(x.search(loc) for x in self._follow):
+                        yield Request(loc, callback=self._parse_sitemap)
+            elif s.type == "urlset":
+                for loc in iterloc(it, self.sitemap_alternate_links):
+                    for r, c in self._cbs:
+                        if r.search(loc):
+                            yield Request(loc, callback=c)
+                            break
+ ```
+
+Here again i would try to implement the inside of the if and elif in different helper functions. 
+
+#### sidemap index
+ ```python  
+
+for loc in iterloc(it, self.sitemap_alternate_links):
+                    if any(x.search(loc) for x in self._follow):
+                        yield Request(loc, callback=self._parse_sitemap)
+ ```  
+This part of the function  _parse_sitemap  can be refactored as a new helper function returning back to the original parse_sitemap where the first decition is being made. Therefore reducing the CC (for example the helper function could be _processing_sidemap)
+
+#### URL set 
+ ```python  
+for loc in iterloc(it, self.sitemap_alternate_links):
+                    for r, c in self._cbs:
+                        if r.search(loc):
+                            yield Request(loc, callback=c)
+                            break
+ ```
+Here its the same thing, this would be called from the _parse_sitemap function and could be implemented as something like  process_URL_links
+
 
 ## Coverage
 
