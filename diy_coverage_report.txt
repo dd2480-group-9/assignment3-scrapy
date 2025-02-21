@@ -1,12 +1,6 @@
 Coverage report of five functions in Scrapy.
 
 ---------------------------------------------
-Function: _get_serialized_fields
-	Branch  1: False
-Function coverage: 0.00%
----------------------------------------------
-
----------------------------------------------
 Function: _next_request
 	Branch  1: True
 	Branch  2: False
@@ -22,23 +16,22 @@ Function coverage: 90.00%
 ---------------------------------------------
 
 ---------------------------------------------
-Function: _process_spider_output
-	Branch  1: False
-Function coverage: 0.00%
+Function: _parse_sitemap
+	Branch  1: True
+	Branch  2: True
+	Branch  3: True
+	Branch  4: True
+	Branch  5: False
+	Branch  6: True
+	Branch  7: True
+	Branch  8: True
+	Branch  9: True
+	Branch 10: True
+	Branch 11: True
+	Branch 12: True
+Function coverage: 91.67%
 ---------------------------------------------
 
----------------------------------------------
-Function: func_4
-	Branch  1: False
-Function coverage: 0.00%
----------------------------------------------
-
----------------------------------------------
-Function: func_5
-	Branch  1: False
-Function coverage: 0.00%
----------------------------------------------
-
-Total coverage: 64.29%
+Total coverage: 90.91%
 
 ---------------------------------------------
